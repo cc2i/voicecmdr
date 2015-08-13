@@ -1,0 +1,203 @@
+#summary Cookbook présentant la synthèse vocale sur J2SE
+#labels Cookbook
+
+
+=*Synthèse Vocal en français avec SI_VOX (projet de l'EPU Polytech'Nice) ou en anglais avec Freetts*=
+
+==Pré requis==
+
+Une version récente Java EE SDK qu'on peu télécharger de http://java.sun.com/javas/downloads/index.jsp
+
+
+==Ingrédient 1==
+
+===Pour SI_VOX===
+
+*.*  le code source de SI_VOX présent dans http://users.polytech.unice.fr/%7Ehelen/SI_VOX-SRC.tar.gz
+
+
+==Ingrédient 2==
+
+===Pour Freetts===
+
+*.*  Télécharger FreeTTS à partir du lien 
+
+              http://sourceforge.net/project/showfiles.php?group_id=42080
+
+
+==RECETTE 1==
+
+===Utilisation de SI_VOX===
+
+
+*méthode 1*
+
+Pour pouvoir utiliser S.I. VOX dans des programmes, voici comment proceder :
+ 
+  1. Importer la classe de lecture de texte : 
+     {{{import t2s.son.LecteurTexte;}}}
+
+  2. Créer un lecteur texte : 
+     {{{LecteurTexte.lt = new LecteurTexte("Texte à lire");}}}
+
+  3. Lire le texte : 
+     {{{lt.playAll();}}}
+
+  4. Changer le texte : 
+     {{{lt.setTexte("Un autre texte à lire");}}}
+  
+  5. Compilation : inclure dans le classpath l'archive 'SI_VOX.jar'
+     {{{javac -classpath .:SI_VOX.jar MaClasse.java}}}
+  
+  6. Copier le dossier donnees qui est à la racine du dossier et coller le dans la racine du projet, ce fichier contient les paramètres de la voix
+
+
+*méthode 2*
+
+Partir du projet dans SI_VOX et développer directement le projet en incluant la classe lecture de texte : {{{import t2s.son.LecteurTexte;}}}
+
+
+===Configuration===
+
+Il est maintenant possible de configurer S.I. VOX de manière simple. 
+Le logiciel recherche un fichier texte 'si_vox.conf' qui doit impérativement être placé dans le répertoire 'donnees' situé au niveau de l'archive auto exécutable.
+  
+En l'absence de ce fichier, S.I. VOX ne fonctionnera pas convenablement!
+
+Ce fichier définit de manière simple les données sur lesquelles l'utilisateur peut avoir une influence : type d'encodage des fichiers textes, fréquence de la voix de lecture, ...
+
+Configuration simple : 
+     Vous pouvez changer facilement certains paramètres du synthétiseurs.
+     Les premiers paramètres sont les paramètres généraux, et sont faciles à régler
+     Pour de plus amples explications, vous êtes invités à lire le fichier de 
+     configuration, qui contient des exemples et des informations.
+
+
+===Modifier la base vocale du programme===   
+
+Il est aisé de modifier la voix utilisée par le programme. Les bases de données utilisées sont des bases standards MBROLA, disponible sur le site du projet mbrola : 
+   http://tcts.fpms.ac.be/synthesis/mbrola/mbrcopybin.html
+
+Vous pouvez ensuite choisir la voix de votre choix.
+
+Pour l'installer, il suffit : 
+    1. de désarchiver la base vocale dans le répertoire  donnees/Mbrola
+    2. de modifier le paramètre VOIX_1 dans le fichier de configuration en
+       plaçant le nom de la base.
+
+*Exemple* : pour installer la voix 'fr4' : 
+
+- On télécharge la voix 
+ http://tcts.fpms.ac.be/synthesis/mbrola/dba/fr4/fr4-990521.zip
+
+- On se place dans le répertoire ad'hoc : 
+  donnees/Mbrola> 
+
+- On dézippe l'archive : 
+  donnees/Mbrola> unzip fr4-990521.zip
+
+- Cette action créé le répertoire 'fr4', qui contient la base vocale 'fr4'
+
+- On remplace donc VOIX_1=fr1/fr1 par VOIX_1=fr4/fr4
+
+- C'est fini !
+
+
+*le programme complet se trouve sur : 
+
+http://code.google.com/p/voicecmdr/source/browse/#svn/cookbooks/synthese
+
+ou bien sur 
+
+svn/cookbooks/synthese
+
+
+
+==RECETTE 2==
+
+===*Méthode avec FreeTTS mais marche qu'on anglais.*===
+
+*Installation de JSAPI avec FreeTTS :*
+
+
+•	Décompresser le paquet télécharger de FreeTTS et exécuter *jsapi.exe* se trouvant dans le répertoire *\lib*
+
+•	Copier tous les _.jar_ (jsapi.jar, freetts.jar, cmu_time_awb.jar, cmu_us_kal.jar, etc) dans ce répertoire et coller les dans *C:\Program Files\Java\jdk1.6.0_03\jre\lib\ext* (le chemin peu légèrement varié selon la versions du JDK)
+
+•	Vérifier dans Netbeans les propriétés du projet i.e. Projet -> Proprerties -> libraries -> manageplatforms  normalement tout les _.jar_ doivent y être :
+
+
+
+http://www.ryan-h.com/wp-content/uploads/2009/04/netbeans-freetts-setup.png
+
+Après ces étapes on peut utiliser JSAPI. 
+
+Exemple de programme utilisant cette librairie:
+
+
+{{{
+
+import com.sun.speech.freetts.Voice;
+import com.sun.speech.freetts.VoiceManager;
+import com.sun.speech.freetts.audio.JavaClipAudioPlayer;
+
+/**
+ * Simple program to demonstrate the use of the FreeTTS speech
+ * synthesizer.  This simple program shows how to use FreeTTS
+ * without requiring the Java Speech API (JSAPI).
+ */
+public class FreeTTSHelloWorld {
+
+    /**
+     * Example of how to list all the known voices.
+     */
+    public static void listAllVoices() {
+        System.out.println();
+        System.out.println("All voices available:");
+        VoiceManager voiceManager = VoiceManager.getInstance();
+        Voice[] voices = voiceManager.getVoices();
+        for (int i = 0; i < voices.length; i++) {
+            System.out.println("    " + voices[i].getName()
+                               + " (" + voices[i].getDomain() + " domain)");
+        }
+    }
+
+    public static void main(String[] args) {
+
+        listAllVoices();
+
+        //Si on donne un argument, c'est l'argument donné qui est passé; sinon, c'est kevin qu'on choisit.
+        String voiceName = (args.length > 0)
+            ? args[0] : "kevin";
+
+        System.out.println();
+        System.out.println("Using voice: " + voiceName);
+
+        /* The VoiceManager manages all the voices for FreeTTS.
+         */
+        VoiceManager voiceManager = VoiceManager.getInstance();
+        Voice helloVoice = voiceManager.getVoice(voiceName);
+
+        if (helloVoice == null) {
+            System.err.println(
+                "Cannot find a voice named "
+                + voiceName + ".  Please specify a different voice.");
+            System.exit(1);
+        }
+
+        /* Allocates the resources for the voice.
+         */
+        helloVoice.allocate();
+
+        /* Synthesize speech.
+         */
+        helloVoice.speak("Hello world");
+
+        /* Clean up and leave.
+         */
+        helloVoice.deallocate();
+        System.exit(0);
+    }
+}
+
+}}}

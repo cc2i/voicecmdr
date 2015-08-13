@@ -1,0 +1,215 @@
+#summary Cookbook sur le mapper XML/Object Castor XML
+#labels Cookbook
+
+*Castor XML Cookbook*
+
+
+   1. Castor XML Cookbook
+   2. Definitions
+         1. Castor XML
+         2. Marshall
+         3. Unmarshall
+   3. Recipes
+         1. Recipe1: Introspection mode
+               1. Step1: Writing a class
+               2. Step2: Marshall
+               3. Step3: XML result from marshall operation
+               4. Step4: Unmarshall
+         2. Recipe2: Mapping mode
+               1. Step1: Writing a class
+               2. Step2: Marshall
+               3. Step3: XML result from marshall operation
+               4. Step4: Unmarshall
+
+   4. Recommended documentation
+
+
+*Definitions*
+
+*Castor XML*
+
+ Castor XML is an XML data binding framework.
+ Enables one to deal with the data defined in an XML document through an object model which represents that data. 
+ Castor XML can marshal almost any "bean-like" Java Object to and from XML.
+ In most cases the marshalling framework uses a set of ClassDescriptors and FieldDescriptors to describe how an Object should be marshalled and unmarshalled from XML. 
+
+*Marshall*
+
+ The act of converting an Object to a stream.
+
+*Unmarshall*
+
+The act of converting from a stream to an Object. 
+
+
+*Recipes*
+
+Recipe1: Introspection mode
+
+Step1: Writting a class
+
+import java.util.Date;
+
+public class Person implements java.io.Serializable {
+
+	private String name = null;
+
+	private Date dob = null;
+
+	public Person() {
+		super(); }
+
+	public Person(String name) { 
+		this.name = name; }
+
+	public Date getDateOfBirth() { 
+		return dob; }
+
+	public String getName(){
+		return name; }
+
+	public void setDateOfBirth(Date dob) {
+		this.dob = dob; }
+
+	public void setName(String name) { 
+		this.name = name; }
+ }
+
+Step2: Marshall
+
+	It does not require any configuration from the user. As such, the user does not have to provide any mapping file(s), nor point Castor to any generated descriptor classes.
+	User provides all required data as parameters on these method calls. 
+
+
+	To marshal an instance of the person class you simply call the org.exolab.castor.xml.Marshaller  as follows: 
+
+	// Create a new Person
+	Person person = new Person("JamesBones");
+	person.setDateOfBirth(new Date(1955, 8, 15));
+
+	// Create a File to marshal to
+	writer = new FileWriter("test.xml");
+
+	// Marshal the person object
+	Marshaller.marshal(person, writer);
+
+
+Step3: XML result from marshall operation
+
+
+	<?xml version="1.0" encoding="UTF-8" ?>
+	<person>
+		<name>JamesBones</name>
+		<date-of-birth>1955-08-15T00:00:00.000+02:00</date-of-birth>
+	</person>
+
+Step4: Unmarshall
+
+	To unmarshal an instance of the person class from XML, you simply call the org.exolab.castor.xml.Unmarshaller  as follows: 
+
+	For this part we take the file produce in the step above in order to regenerate the step 1's Java Object.
+
+	// Create a Reader to the file to unmarshal from
+	reader = new FileReader("test.xml");
+
+	// Marshal the person object
+	Person person = (Person)
+	Unmarshaller.unmarshal(Person.class, reader);
+
+
+
+Recipe2: Mapping mode
+
+Step1: Writting a class
+
+	For the mapping mode we will be using the same example given before.
+
+import java.util.Date;
+
+public class Person implements java.io.Serializable {
+
+	private String name = null;
+
+	private Date dob = null;
+
+	public Person() {
+		super(); }
+
+	public Person(String name) { 
+		this.name = name; }
+
+	public Date getDateOfBirth() { 
+		return dob; }
+
+	public String getName(){
+		return name; }
+
+	public void setDateOfBirth(Date dob) {
+		this.dob = dob; }
+
+	public void setName(String name) { 
+		this.name = name; }
+ }
+
+Step2: Marshall
+
+	To marshal an instance of the person class you simply call the org.exolab.castor.xml.Marshaller  as follows: 
+
+	import org.exolab.castor.xml.Marshaller;
+
+	// create a Writer to the file to marshal to
+	Writer writer = new FileWriter("out.xml");
+
+	// create a new Marshaller
+	Marshaller marshaller = context.createMarshaller();
+	marshaller.setWriter(writer);
+
+	// marshal the person object
+	marshaller.marshal(person);
+
+
+Step3: XML result from marshall operation
+
+
+	<?xml version="1.0" encoding="UTF-8" ?>
+	<person>
+		<name>JamesBones</name>
+		<date-of-birth>1955-08-15T00:00:00.000+02:00</date-of-birth>
+	</person>
+
+
+Step4: Unmarshall
+
+	To unmarshal an instance of the person class from XML, you simply call the org.exolab.castor.xml.Unmarshaller  as follows: 
+
+	For this part we take the file produce in the step above in order to regenerate the step 1's Java Object.
+
+	import org.exolab.castor.xml.XMLContext; 
+	import org.exolab.castor.mapping.Mapping; 
+	import org.exolab.castor.xml.Unmarshaller;
+
+	// Load Mapping
+	Mapping mapping = new Mapping();
+	mapping.loadMapping("mapping.xml");
+
+
+	// initialize and configure XMLContext
+	XMLContext context = new XMLContext();
+	context.addMapping(mapping);
+
+	// Create a Reader to the file to unmarshal from
+	reader = new FileReader("test.xml");
+
+	// Create a new Unmarshaller
+	Unmarshaller unmarshaller =context.createUnmarshaller();
+	unmarshaller.setClass(Person.class);
+
+	// Unmarshal the person object
+	Person person = (Person)unmarshaller.unmarshal(reader);
+	
+
+
+
+*Recommended documentation*
+
+Castor's project website: http://www.castor.org/

@@ -1,0 +1,162 @@
+#summary Cookbook général sur la plateforme Java ME
+#labels Cookbook
+
+=Java Platform, Micro Edition - Cookbook=
+
+1. *Introduction*
+   # Aspects généraux
+   # Pour bien commencer
+2. *Recettes*
+   # Première recette : une première application mobile
+      * Etape 1 : Création du projet
+      * Etape 2 : Modification
+      * Etape 3 : Exécution
+   # Deuxième recette : une fenêtre d'authentification
+      * Etape 1 : Création du projet
+      * Etape 2 : Une fenêtre en kit
+      * Etape 3 : Un identifiant, un mot de passe, et après ?
+      * Etape 4 : Un contrôle des saisies
+
+3. *Documentation conseillée*
+
+----
+
+=1. Introduction=
+==Aspects généraux==
+Une plateforme Java ME se compose d'une machine virtuelle, d'une configuration (API de base) et d'un profil (ensemble d'APIs spécifiques). Deux configurations de base existent :
+ * Connected Limited Device Configuration (CLDC) pour les appareils de faible capacité/performance,
+ * Connected Device Configuration (CDC) pour les appareils plus puissants.
+On pourra citer parmi les profils les plus courants pour CLDC:
+ * Mobile Information Device Profile (MIDP) qui intègre dans son API des éléments réseaux et quelques composants d'IHM,
+ * PDA Profile qui donne accès à une IHM plus riche.
+Et du côté de CDC :
+ * Foundation Profile qui définit un ensemble d'APIs basique, sans IHM,
+ * Personal Basis Profile qui contient les APIs  de Foundation Profile plus des composants AWT légers,
+ * Personal Profile qui inclut Personal Basis Profile plus le support complet d'AWT, des applets, etc…
+	
+==Pour bien commencer==
+Pour développer en Java ME, il faut en plus du traditionnel JDK et en fonction des goûts, l'une ou l'autre des configurations suivantes :
+ * <a href="http://netbeans.org/downloads/index.html">!NetBeans</a> dans sa version "Java" supporte Java ME,
+ * <a href="http://www.eclipse.org/">Eclipse</a>, <a href="http://java.sun.com/javame/downloads/sdk30.jsp">J2ME Wireless Toolkit</a> (de Sun) et le plugin <a href="http://www.eclipse.org/dsdp/mtj/">Eclipse Mobile Tools for Java</a>
+Par la suite, les manipulations proposées le seront sous !NetBeans, libre à quiconque de les transposer sous un autre EDI.
+
+
+
+=2. Recettes=
+==Première recette : une première application mobile==
+Code source disponible sur le SVN : <a href="http://code.google.com/p/voicecmdr/source/browse/cookbooks/j2me/FirstMobileApp">/cookbooks/j2me/!FirstMobileApp</a>
+===Etape 1 : Création du projet mobile===
+Sous !NetBeans, ouvrez la fenêtre de création de nouveau projet et, dans la catégorie Java ME, choisissez  New Mobile Application. Nous allons donc créer une application Java ME basée sur CLDC et MIDP. La fenêtre suivante vous est familière, donnez un nom au projet ("!FirstMobileApp" par exemple) et modifiez si vous le voulez l'emplacement du nouveau projet. La troisième fenêtre définit la plateforme à utiliser, laissez pour le moment les options par défaut et terminez la création du projet.
+
+===Etape 2 : Modification du projet===
+Le projet est maintenant créé, vous êtes sur la vue générale. L'organisation ressemble à celle d'un projet Java SE classique, mais arrêtons-nous un moment sur l'élément central. Vous pouvez voir que votre projet contient une classe nommée `HelloMidlet` qui est affichée sous sa vue d'ensemble (Flow design window). Cette vue permet d'ajouter notamment de nouveaux écrans à notre application et de nouvelles commandes permettant de naviguer entre les écrans. Le premier composant, "Mobile Device" représente comme son nom l'indique l'appareil mobile, il est géré par l'émulateur. Le deuxième composant "form" est l'écran de notre application. Il contient une commande qui permet de quitter l'application.
+
+http://www.etud.insa-toulouse.fr/~mace/BE_COO/flow_view.JPG
+
+Changez de vue et affichez la vue nommée Screen. Elle permet d'avoir un aperçu de l'écran du mobile qui exécutera l'application. L'application ne contient pour l'instant qu'un seul écran. Celui-ci possède un titre que vous pouvez modifier. Cliquez sur l'écran et, dans la fenêtre Properties, repérez le champ Title qui a pour valeur "Welcome". Changez-le pour "Bienvenue" si vous voulez franciser l'application.
+L'écran possède un objet `StringItem`, qui contient un label et un texte. Vous pouvez les traduire eux aussi en cliquant sur l'objet et en modifiant ses propriétés.
+
+http://www.etud.insa-toulouse.fr/~mace/BE_COO/screen_view.JPG
+
+Cliquez maintenant sur le bouton Source pour changer de vue et afficher le code source de la classe `HelloMidlet`, vous constaterez que le code généré est déjà assez conséquent. Cherchez les méthodes `getForm()` et `getStringItem()` pour vous assurez que vos changements ont été pris en compte.
+{{{
+    public Form getForm() {
+        if (form == null) {
+            // write pre-init user code here
+            form = new Form("Bienvenue", new Item[] { getStringItem() });
+            form.addCommand(getExitCommand());
+            form.setCommandListener(this);
+            // write post-init user code here
+        }
+        return form;
+    }
+
+    public StringItem getStringItem() {
+        if (stringItem == null) {
+            // write pre-init user code here
+            stringItem = new StringItem("Bonjour", "Bonjour \u00E0 tous !");
+            // write post-init user code here
+        }
+        return stringItem;
+    }
+}}}
+
+===Etape 3 : Exécution du projet===
+Il est temps de tester votre application ! Lancez donc votre projet comme vous en avez l'habitude. Vous devriez voir apparaitre l'émulateur et sous la forme d'un téléphone exécutant votre application. Le titre et le texte que vous avez définis s'affichent et vous voyez en bas de l'écran la commande permettant de quitter l'application dont nous avons parlé précédemment.
+
+http://www.etud.insa-toulouse.fr/~mace/BE_COO/emulateur.JPG
+
+
+
+
+==Deuxième recette : une fenêtre d'authentification==
+Code source disponible sur le SVN : <a href="http://code.google.com/p/voicecmdr/source/browse/cookbooks/j2me/LoginApplication">/cookbooks/j2me/!LoginApplication</a>
+===Etape 1 : Création du projet===
+Créez un nouveau projet Netbeans dans la catégorie Java ME et de type Mobile Application. Dans la fenêtre suivante, nommez votre projet et décochez la case "Create Hello MIDlet". Enfin, cliquez sur "Finish" pour terminer la création du projet.
+
+===Etape 2 : Une fenêtre en kit===
+Le projet est pour l'instant vide. Commencez par ajouter un MIDlet en créant un nouveau fichier, de catégorie _MIDP_ et de type _Visual MIDlet_. Après validation, vous vous retrouvez sur la vue de design. Grâce à la palette (à droite de l'écran), ajoutez une fenêtre d'authentification (_Login Screen_). Pour l'instant, cette fenêtre de login n'est pas affichée au démarrage de l'application. Il faut la relier au point de démarrage du MIDlet. Pour cela, cliquez sur la ligne _Started_ de l'objet _Mobile Device_ et, en maintenant le clic enfoncé, tracez une flèche vers la fenêtre de login. Vous pouvez dès à présent lancer votre application et constater que la fenêtre affichée contient un deux champs de texte que vous pouvez remplir.
+
+http://www.etud.insa-toulouse.fr/~mace/BE_COO/login_screen.JPG
+
+Pour améliorer notre fenêtre d'authentification nous allons lui ajouter une commande permettant de quitter l'application. Ajoutez donc une commande de type _Exit Command_ à votre objet _loginScreen_ (dans la palette, catégorie _Commands_). Puis, comme tout à l'heure, reliez cette nouvelle commande à l'objet _Mobile Device_. Votre application peut maintenant se terminer correctement.
+
+http://www.etud.insa-toulouse.fr/~mace/BE_COO/exit_command.JPG
+
+Vous pouvez également afficher les propriétés de la fenêtre de login à l'aide du menu contextuel. Vous pouvez changer, par exemple, les textes affichés et forcer l'utilisation d'un bouton pour valider la fenêtre ("Use login button").
+
+http://www.etud.insa-toulouse.fr/~mace/BE_COO/login_screen_screenshot.JPG
+
+===Etape 3 : Un identifiant, un mot de passe, et après ?===
+L'application permet de renseigner un identifiant, un mot de passe, mais elle n'en fait rien pour l'instant ! Ajoutez un nouvel objet de type _Form_, dans _Displayables_, qui sera le deuxième écran de l'application. Pour permettre de naviguer entre ces écrans, reliez la commande _LOGIN_COMMAND_ de la fenêtre de login au nouvel objet, puis ajoutez une _Back Command_ et une _Exit Command_ au nouvel objet _Form_ en les reliant respectivement à la fenêtre de login et à l'objet _Mobile Device_. Vous constaterez qu'on perd vite en lisibilité du graphique. Vous pouvez à tout moment utiliser l'outil _Layout_ (première icône à droite des 4 boutons de vue _Source_, _Screen_, _Flow_, _Analyzer_) qui permet de réorganiser automatiquement les objets sur l'espace de design.
+
+http://www.etud.insa-toulouse.fr/~mace/BE_COO/new_form.JPG
+
+Nous voulons maintenant afficher les données renseignées à l'écran de login sur le nouvel écran. Affichez le code source et cherchez la méthode _commandAction()_. Les lignes suivantes vont nous intéresser :
+{{{
+if (command == LoginScreen.LOGIN_COMMAND) {
+   // write pre-action user code here
+   switchDisplayable(null, getForm());
+   // write post-action user code here
+}
+}}}
+Comme indiqué, il est possible d'effectuer des traitements avant que la fenêtre ne soit changée, ou après (méthode _switchDisplayable()_). On voudra d'abord s'assurer que l'écran est vide (ne contient pas d'informations écrites précédemment) avant de l'afficher. Ecrivez donc la ligne suivante avant l'appel à la méthode _switchDisplayable()_ :
+{{{
+this.getForm().deleteAll();
+}}}
+Ecrivez ensuite la ligne suivante pour afficher les informations :
+{{{
+this.getForm().append("Identifiant : " + this.getLoginScreen().getUsername() + "\n" +
+                      "Mot de passe : " + this.getLoginScreen().getPassword());
+}}}
+L'application affiche maintenant l'identifiant et le mot de passe après les avoir renseignés dans la fenêtre d'authentification.
+
+===Etape 4 : Un contrôle des saisies===
+Il serait intéressant de ne pas passer à l'écran suivant si l'utilisateur entre des données incohérentes (par exemple des chaines de caractères vides). Pour cela nous allons mettre en place un contrôle simple des données saisies.
+
+Allez dans le code source, à la méthode _commandAction()_. Avant de changer d'écran, nous allons tester les données. Si l'identifiant ou le mot de passe est vide l'application avertira l'utilisateur à l'aide de la fenêtre d'alerte (objet _Alert_). Ajoutez les lignes suivantes avant l'appel à la méthode _switchDisplayable()_ :
+{{{
+if (this.getLoginScreen().getUsername().length() < 1
+    || this.getLoginScreen().getPassword().length() < 1) {
+   Alert alert = new Alert("Données erronées", "L'identifiant et le mot de passe ne peuvent être vides.", null, AlertType.ERROR);
+   alert.setTimeout(Alert.FOREVER);
+   this.switchDisplayable(alert, this.loginScreen);
+   return;
+}
+}}}
+Le constructeur de la classe _Alert_ prend, dans l'ordre, une chaine de caractère représentant le titre de la fenêtre d'alerte, le texte de l'alerte, éventuellement une image représentant une icône et le type d'alerte (cf. l'API MIDlet pour plus de renseignements). Ensuite l'alerte est réglée pour qu'il faille explicitement la valider, puis elle est affichée.
+
+Vous pouvez maintenant tester l'application et constater le bon fonctionnement de la fenêtre d'alerte si vous laisser un des deux champs vides.
+
+http://www.etud.insa-toulouse.fr/~mace/BE_COO/alert.JPG
+
+
+=3. Documentation conseillée=
+
+CLDC documentation : [http://java.sun.com/javame/reference/apis/jsr139]
+
+MIDP documentation : [http://java.sun.com/javame/reference/apis/jsr118]
+
+CDC documentation : [http://java.sun.com/javame/reference/apis/jsr218]
+
+Netbeans documentation mobile : [http://netbeans.org/kb/trails/mobility.html]

@@ -1,0 +1,125 @@
+#summary Cookbook traitant de log4j
+#labels Cookbook
+
+= Introduction =
+
+<h2><font color="red">Cookbook en cours de rédaction - Inachevé</font></h2>
+
+L'utilisation de System.out.println() pour déboguer n'est pas une solution viable. Les loggers tel que log4j simplifient la gestion des logs et du débogage. 
+
+Cookbook largement inspiré du wiki http://wiki.mediabox.fr/tutoriaux/java/log4j du site Mediabox. L'ensemble du site Mediabox est sous licence [http://creativecommons.org/licenses/by-nc-sa/2.0/fr/deed.fr Creative Commons] ce wiki est donc aussi sous cette licence. 
+
+= Fonctionnement de log4j =
+
+Le framework utilise trois types de composant :
+ * Logger 
+ * Appender 
+ * Layout
+
+Ces composants communiquent entre eux pour déterminer :
+ * Quel messages doivent être loggés
+ * La façon de logger les messages
+ * La présentation des messages
+
+== Logger ==
+
+Le Logger est le point d’entrée d’un message. C’est pratiquement une des seules classes que nous allons utiliser.
+
+log4j gère les Logger de façon hiérarchique. C’est à dire qu’un Logger peut avoir des enfants et des parents. La hiérarchie est gérée par le nom des Logger. Les niveaux sont définis par des points, un peu comme la structure des packages de classes. Par exemple :
+
+com 
+com.liguo
+com.liguo.layout
+com est le parent de com.liguo et l’ancêtre de com.liguo.layout
+
+log4j possède par défaut un Logger à la racine de la hiérarchie. Il se nomme *rootLogger*.
+
+Lorsque l’on demande à log4j de créer un Logger, il vérifie dans la configuration s’il y a quelque chose de défini pour celui-ci. S’il ne trouve rien, il remonte dans la hiérarchie jusqu’à ce qu’il trouve quelque chose. C’est pourquoi le rootLogger qui est à la racine est très important.
+
+== Appender ==
+
+Appender est une interface dont le rôle est de :
+ * Filtrer les messages
+ * Déterminer le mode de sortie des messages selon l’implémentation
+ * Un logger peut avoir un nombre X d’appender. Pour ajouter un appender manuellement (je n’ai jamais eu à le faire), il suffit de faire :
+
+{{{
+monLogger.addAppender(monAppender);
+}}}
+_Note_ : Un Logger utilise les appender de ses ancêtres. Donc les appender définis pour le rootLogger seront utilisés par tous les Logger, peu importe leur niveau.
+
+log4j fournit de base les appender utilisés pour les tâches courantes :
+ * ConsoleAppender - envoie les messages dans la console du système (cf. Tomcat dans le cadre d’une application web)
+ * FileAppender - envoie les messages dans un fichier
+ * SocketAppender - envoie les messages dans un Socket
+ * SMTPAppender - envoie les messages par mail
+Il en existe d’autres pour les utilisateurs plus avancés et il est évidemment possible de créer son propre appender custom en implémentant l’interface org.apache.log4j.Appender
+
+== Layout ==
+
+Les Layout définissent le format du message. Je peux par exemple avoir la date, l’heure, le nom de la classe qui envoie le message et le niveau de logging au début de chaque message. C’est le rôle du Layout de faire ça et non celui du développeur qui envoie le message.
+
+== Niveau ==
+
+Lorsqu’on envoie un message à un logger, il faut spécifier un niveau. Par défaut log4j offre les niveaux suivants:
+ * TRACE
+ * DEBUG
+ * INFO
+ * WARN
+ * ERROR
+ * FATAL
+Les niveaux sont gérés par ordre de priorité, TRACE étant le moins important.
+
+Par exemple, durant la période de développement, on utilise le niveau DEBUG. Une fois que l’application est déployée en production, on change le niveau pour WARN afin d’ignorer les messages de debugage, Sans modifier une seule ligne dans notre code.
+
+_Note_ : Il est possible de créer ses propres niveaux.
+
+= Installation =
+
+Il faut tout d’abord aller sur le site de la fondation Apache pour télécharger log4j :
+
+http://logging.apache.org/log4j/docs/download.html
+
+Télécharger la dernière version stable. Ensuite extraire l’archive dans n’importe quel répertoire de votre disque dur.
+
+L’archive devrait avoir la structure de répertoires suivante :
+
+logging-log4j-x.x.x
+build
+contribs
+dist
+docs
+exemples
+src
+
+Le répertoire dist devrait contenir un sous-répertoire lib. Ce dernier devrait contenir le fichier log4j-x.x.x.jar (remplacez x.x.x par le numéro de version)
+
+Pour installer log4j, il suffit d’inclure le fichier log4j-x.x.x.jar dans le classpath. 
+Dans le cas d’une application web avec Tomcat, c’est dans le répertoire /WEB-INF/lib
+Dans le cas d'un programme Java ordianire, log4j cherche un fichier log4j.properties (ou xml) dans le racine du [http://fr.wikipedia.org/wiki/Classpath_(java) classpath].
+
+= Un exemple =
+
+{{{
+    import org.apache.log4j.Logger;
+    import org.apache.log4j.BasicConfigurator;
+    
+    public class Hello {
+    
+      private static final Logger logger = Logger.getLogger(Hello.class);
+    
+      public
+      static
+      void main(String argv[]) {
+    	BasicConfigurator.configure();
+    	logger.debug("Hello world.");
+    	logger.info("What a beatiful day.");
+      }
+    }
+}}}
+
+= Ressources =
+
+[http://logging.apache.org/log4j/1.2/index.html Site officiel du projet log4j]<br/>
+[http://gfx.developpez.com/tutoriel/java/log4j/ Un premier tutoriel complet]<br/>
+[http://beuss.developpez.com/tutoriels/java/jakarta/log4j/ Un second tutoriel complet]

@@ -1,0 +1,102 @@
+#summary Cookbook énonçant les pistes utilisées pour la synthèse vocale en J2ME
+#labels Cookbook
+
+= Synthèse vocale en J2ME =
+
+On considère ici l'ensemble les technologies qui consistent à synthétiser vocalement du texte sur un appareil mobile. 
+Nous énoncerons ici les techniques et méthodes envisagées.
+
+== Introduction ==
+
+A l'heure actuelle, l'API libre qui parait la plus adaptée est l'API Java 
+Speech API 2.0, applicable avec la version Mobile de java. La version 1.0 
+n'étant applicable uniquement à la version standard de java.
+
+Cette API correspond à la JSR 113. Cela peut être un mot clé efficace pour effectuer une recherche sur ce sujet.
+
+Nous avons trouvé des exemples d'implémentations possibles pour effectuer de la synthèse vocale.
+
+== Ingrédients ==
+
+
+=== Ingrédient 1 : Programme de synthèse de la phrase "Hello World" ===
+
+Source : Forum Nokia 
+[disponible en ligne : 
+http://wiki.forum.nokia.com/index.php/Speech_Recognization_in_Java_ME
+]
+<code>
+// Create a synthesizer for the default Locale
+Synthesizer synth = (Synthesizer)
+EngineManager.createEngine(SynthesizerMode.DEFAULT);
+// Load language specific data – can take time
+synth.allocate();
+// Speak the "Hello world" string
+synth.speak("Hello, world!", null);
+// Clean up - includes waiting for the queue to empty
+synth.deallocate(); 
+</code>
+
+
+Synthèse en une langue différente de l'anglais
+
+Source : 
+http://majug.de/files/20090701_2.pdf
+<code>
+// Deutschen Synthesizer erzeugen
+SpeechLocale german = new SpeechLocale("de");
+SynthesizerMode synMode = new SynthesizerMode(german);
+Synthesizer synth = (Synthesizer) EngineManager.createEngine(synMode);
+// Bereitmachen, um etwas auszugeben
+synth.allocate();
+// Sprich!
+synth.speakMarkup("<speak version='1.0' xml:lang='de'>"
++ "Welches ist Ihr Lieblingseis?</speak>", null);
+// Aufräumen.
+synth.deallocate();
+</code>
+
+
+=== Ingrédient 2 : des JARs ===
+
+L'auteur de cette dernière source nous indique les librairies à inclure dans
+le projet pour utiliser l'API, il s'agit de :
+
+- jsapi2.jar
+
+- ri.jar
+
+- kxml2.jar
+
+- ri-js2se.jar
+
+- ri-kvm.jar
+
+Les sources sont téléchargeables sur le site 
+http://www.conversations.com
+
+
+Après un enregistrement auprès du site (obligatoire pour télécharger sur ce 
+site), vous pouvez télécharger les jar nécessaires.
+
+== Résultat : infructueux ==
+
+Lorsque nous avons tenter d'implémenter les méthodes données dans notre projet,
+nous avons eu des erreurs à l'exécution qui montrent que les librairies des 
+fichier jar contiennent uniquement la spécification, sans corps de méthode, par
+conséquent inutilisables en l'état actuel.
+Les fichiers jar téléchargés sur d'autres sites ont donné le même résultat.
+
+== Pistes intéressantes mais n'ayant donné à terme aucun résultat probant ==
+
+- 
+http://java.sun.com/products/java-media/speech/forDevelopers/jsapi-guide/Synthesis.html
+
+- 
+http://it-republik.de/jaxenter/artikel/Java-Speech-API-2.0-Finale-Aufraeumarbeiten-2392.html (en allemand)
+
+- 
+http://it-republik.de/jaxenter/artikel/Java-Speech-API-2-1743.html
+
+- 
+http://www.conversations.com/JSAPI2JSR113/tabid/199/Default.aspx

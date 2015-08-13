@@ -1,0 +1,206 @@
+#summary Cookbook décrivant la réalisation d'une application de reconnaissance vocale avec Sphinx 4.
+#labels Cookbook
+
+=Application de reconnaissance vocale avec Sphinx-4=
+
+==Prérequis : ==
+
+Un IDE Java avec JDK 6.
+
+Ce Cookbook explique la réalisation d'une application permettant de reconnaitre la voix d'un utilisateur grâce à la librairie Sphinx-4.
+
+=Ingrédients : =
+
+== Libraires Sphinx et modèles acoustiques. ==
+
+Pour commencer, téléchargez la librairie Sphinx-4 et les modèles acoustiques en Français :
+
+Librairie Sphinx-4 :  http://sourceforge.net/projects/cmusphinx/files/ (prendre la version avec sources, cela permet de regarder les exemples et d'avoir la javadoc quand on code)
+
+Les modèles acoustiques en français sont disponibles sur la même page, ils ont été créés par le LIUM (un laboratoire de recherche de l'université du maisne).Pour ce Cookbook nous avons utilisé la version f0 (voix claire).
+
+
+= Recette : =
+
+
+== Création d'un projet ==
+Une fois les librairies récupérées et décompressées, on peut commencer la création d'un nouveau projet.
+
+Les librairies à inclure (sous forme de fichier jar) sont les librairies js.jar, sphinx4.jar et jsapi.jar.
+
+La jsapi est soumise à une licence particulière est n'est pas fournie telle quelle avec sphinx. Pour avoir le fichier jar à disposition, il faut se rendre dans le dossier "lib" de sphinx et cliquer sur l'exécutable "jsapi", puis accepter les conditions d'utilisation. Une fois ceci fait, le fichier jsapi.jar devrait apparaitre dans le dossier lib.
+
+_Optionnel : Vous pouvez donner le chemin vers la javadoc de sphinx pour plus de facilité lors du codage._
+
+Une fois que les librairies sont configurées, nous allons intégrer les modèles acoustiques à notre projet, comme si ceux-ci étaient des sources.
+
+On importe dans le projet le dossier french_f0 qui correspond aux modèles français.
+
+Nous avons maintenant tout les fichiers librairies nécessaires pour effectuer une reconnaissance vocale. 
+
+== Écriture de la grammaire ==
+
+Pour effectuer une reconnaissance, il faut écrire une grammaire, c'est à dire un fichier décrivant les expressions qui doivent être reconnues par le programme. Les grammaires utilisées par Sphinx sont au format jsgf (Java Speech Grammar Format). Une documentation claire comprenant toutes les subtilités pour la rédaction de ce type de grammaire est disponible sur le site de Sphinx.
+
+http://java.sun.com/products/java-media/speech/forDevelopers/JSGF/
+
+Voici un exemple de grammaire simple reconnaissant une séquence de trois mots :
+
+{{{
+#JSGF V1.0;
+
+grammar grammaire;
+
+public <greet> = ( valider | commencer | fin | recommencer | aller | pause | abandonner | prendre ) ( étape | travail | tache | station | mission ) (un | deux | trois | quatre | cinq | six );
+}}}
+
+_Remarque : Les IDE ont du mal à reconnaitre les accents du fichier dictionnaire fourni par le LIUM. Nous verrons plus tard comment remédier à ce problème._ 
+
+
+==Écriture du fichier de configuration pour Sphinx==
+
+La grammaire est terminée. Avant de commencer à coder, il faut écrire le fichier de configuration (au format XML) qu'utilise sphinx pour configurer le reconnaisseur vocal. (quelle grammaire, quel modele acoustique, quel dictionnaire utiliser?)
+
+Le mieux est de partir sur un des exemples de fichier de configuration de Sphinx-4 (dans le dossier src)
+
+Pour utiliser les modèles en français , voici les éléments principaux à ajouter au fichier de Configuration :
+{{{
+    <!-- ******************************************************** -->
+    <!-- The Grammar  configuration                               -->
+    <!-- ******************************************************** -->
+
+    <component name="jsgfGrammar" type="edu.cmu.sphinx.jsapi.JSGFGrammar">
+        <property name="dictionary" value="dictionary"/>
+        <property name="grammarLocation"
+             value="resource:/sphinx4.OutilsVoix!/sphinx4/"/>
+        <property name="grammarName" value="grammaire"/> -----> On donne le chemin et le nom de la grammaire à utiliser
+	<property name="logMath" value="logMath"/>
+    </component>
+
+
+    <!-- ******************************************************** -->
+    <!-- The Dictionary configuration                            -->
+    <!-- ******************************************************** -->
+    <component name="trigramModel" type="edu.cmu.sphinx.linguist.language.ngram.large.LargeTrigramModel">
+    <property name="unigramWeight" value="0.7"/>
+    <property name="maxDepth" value="3"/>
+    <property name="logMath" value="logMath"/>
+    <property name="dictionary" value="dictionary"/>
+    <property name="location" value="/sphinx4/french/etc/french3g62K.DMP"/> ---> le modèle acoustique
+     </component>
+
+    <component name="dictionary"
+               type="edu.cmu.sphinx.linguist.dictionary.FullDictionary">
+        <property name="dictionaryPath"
+	 value="resource:/sphinx4.Main!/sphinx4/french/etc/frenchWords62K.dic"/> --> le dictionnaire
+        <property name="fillerPath"
+	 value="resource:/sphinx4.Main!/sphinx4/french/etc/frenchFillers.filler"/> --> le filler (permet de reconnaitre certaines onomatopées et fin de phrase) 
+        <property name="addSilEndingPronunciation" value="true"/>
+        <property name="unitManager" value="unitManager"/>
+    </component>
+
+
+    <!-- ******************************************************** -->
+    <!-- The acoustic model configuration                         -->
+    <!-- ******************************************************** -->
+    <component name="sphinx3Loader"
+   	     type="edu.cmu.sphinx.linguist.acoustic.tiedstate.Sphinx3Loader">
+	<property name="logMath" value="logMath"/>
+	<property name="unitManager" value="unitManager"/>
+        <property name="dataLocation" value="/sphinx4/french/model_parameters/french_f0.cd_cont_5725_22"/>
+        <property name="modelDefinition" value="/sphinx4/french/model_architecture/french_f0.5725.mdef"/>
+  </component>
+
+  <component name="acousticModel" type="edu.cmu.sphinx.linguist.acoustic.tiedstate.TiedStateAcousticModel">
+    <property name="loader" value="sphinx3Loader"/>
+    <property name="unitManager" value="unitManager"/>
+  </component>.
+}}}
+
+*Ceci est un exemple de configuration*, il faut adapter les chemin selon votre projet. *Les fichiers de configuration de Sphinx sont complexes* et expliquer tout en détail serait très long. Tout est expliqué sur le site internet de Sphinx de manière claire, il faut juste s'y pencher *calmement en prenant bien le temps de tout comprendre* :
+
+[http://www.speech.cs.cmu.edu/sphinx/tutorial.html]
+[http://cmusphinx.sourceforge.net/sphinx4/javadoc/edu/cmu/sphinx/util/props/doc-files/ConfigurationManagement.html]
+
+Pour faire simple, Sphinx utilise un pipe-line qui décrit l'enchainement des opérations a effectuer. Ainsi, il faut modifier le fichier de configuration suivant par exemple, le type d'entrée : microphone, ou fichier wav.
+
+Tout est prêt , on va commencer le codage.
+
+
+==Écriture du code :==
+
+===Déclaration des objets :===
+
+Pour reconnaitre de la voix nous allons utiliser un objet recognizer :
+
+    {{{private Recognizer reconnaisseur;}}}
+
+Pour initialiser le recognizer, nous avons besoin de deux choses, l'URL du fichier de configuration XML, ainsi
+qu'un objet ConfigurationManager, qui va charger le fichier et l'interpreter pour fournir les infos au recognizer.
+
+    {{{
+    private URL configUrl;
+
+    private ConfigurationManager configManager;
+    }}}
+
+
+
+
+===Initialisation :===
+{{{
+	//Récupération du fichier de configuation
+ 	configUrl = OutilsVoix.class.getResource("configuration.xml");
+	//Instanciation de l'objet ConfigurationManager
+        configManager = new ConfigurationManager(getConfigUrl());
+
+        //On instancie l'objet Recognizer à partir de notre ConfigurationManager grace à la méthode "lookup"
+        reconnaisseur = (Recognizer) configManager.lookup("recognizer");
+
+        //On alloue les ressources nécessaires à la reconnaissance vocale
+        reconnaisseur.allocate();
+}}}
+
+Une fois ceci effectué, le recognizer est prêt à reconnaitre des mots.
+
+
+===Code de reconnaissance :===
+
+{{{
+public String reconnaitreFichierWav (URL URLFichier) {
+        String sequenceReconnue="";
+
+        // configuration de la source d'entrée
+        AudioFileDataSource sourceAudio = (AudioFileDataSource) configManager.lookup("audioFileDataSource");
+        sourceAudio.setAudioFile(URLFichier, null);
+
+	//la fonction "magique" de sphinx qui effectue la reconnaissance à proprement parler
+        Result result = reconnaisseur.recognize();
+        if (result != null) {
+	    //cette méthode permet de récupérer la chaine de caractère reconnue.
+            sequenceReconnue = result.getBestFinalResultNoFiller();
+        }
+
+       return sequenceReconnue;
+    }
+}}}
+
+Comme on peut le voir, la source d'entrée ne se configure pas dans le code mais dans le fichier XML. Le code serait différent pour une reconnaissance directement au microphone.
+
+=Avec toutes ces informations vous devriez pouvoir réaliser votre propre système de reconnaissance vocale !=
+
+=Quelques remarques :=
+
+_Sphinx-4 et les modèles acoustiques sont gourmands en espace disque, votre projet aura surement une taille proche des 800 Mo._
+
+  * _L'exécution d'un programme java utilisant un objet recognizer demande *beaucoup de mémoire*. Il vous faudra surement_ configurer votre JVM pour augmenter la mémoire utilisée lors de l'exécution. (paramètre -mx512m par exemple).
+
+  * _*Les accents (é,è,à) .* Pour prendre en compte les accents, si vous en avez mis dans votre grammaire, il faut modifier le fichier dictionnaire du LIUM dans votre IDE (FrenchWords62K.dic). En ouvrant ce fichier vous verrez que l'encodage des caractères n'est pas bien pris en compte (carrés à la place des accents). Pour que les accents soient pris en compte remettez les accents à la main dans le fichier .dic, pour les mots avec accents que vous avez mis dans votre grammaire._
+
+
+=Quelques conseils :=
+
+  * Plus la grammaire est simple, plus la reconnaissance sera efficace. Attention donc à ne pas trop chercher à faire compliqué car avec une grammaire simplifiée on peut facilement atteindre un taux de reconnaissance supérieur à 80%.
+
+  * La configuration du microphone est très importante, ainsi que l'encodage dans le cas d'un fichier Wav (fréquence,nombre de canaux etc..) . Le mieux est de réaliser des tests.
+ 
